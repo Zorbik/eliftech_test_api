@@ -18,8 +18,13 @@ export class UserController {
 
   @Post('create')
   async createOrUpdateUser(@Body() userData: UserDto): Promise<User> {
-    const { phone, email, order } = userData;
-    const user = await this.userService.createOrUpdateUser(phone, email, order);
-    return user;
+    const { name, phone, email, address, order } = userData;
+    return await this.userService.createOrUpdateUser(
+      name,
+      phone,
+      email,
+      address,
+      order,
+    );
   }
 }

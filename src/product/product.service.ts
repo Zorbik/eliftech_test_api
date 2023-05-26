@@ -16,28 +16,27 @@ export class ProductService {
     return await this.productModel.create(dto);
   }
 
-  async getGoods(page: number, limit: number, shop: string, search?: string) {
-    const goods = search
-      ? await this.productModel
-          .find({
-            shop,
-            title: { $regex: `${search}`, $options: '/i' },
-          })
-          .sort({ title: 1 })
-          .limit(limit)
-          .skip((page - 1) * limit)
-      : await this.productModel
-          .find({ shop })
-          .sort({ title: 1 })
-          .limit(limit)
-          .skip((page - 1) * limit);
+  async getGoods(page: string, limit: string, shop: string, search?: string) {
+    const numPage = Number(page);
+    const numLimit = Number(limit);
+    const regexShop = new RegExp(shop, 'i');
+    const regexSearch = search ? new RegExp(search, 'i') : null;
 
-    const totalCount = search
-      ? await this.productModel.count({
-          shop,
-          title: { $regex: `${search}`, $options: '/i' },
-        })
-      : await this.productModel.count({ shop });
+    const goods = regexSearch
+      ? await this.productModel
+          .find({ shop: regexShop, title: regexSearch })
+          .sort({ title: 1 })
+          .limit(numLimit)
+          .skip((numPage - 1) * numLimit)
+      : await this.productModel
+          .find({ shop: regexShop })
+          .sort({ title: 1 })
+          .limit(numLimit)
+          .skip((numPage - 1) * numLimit);
+
+    const totalCount = regexSearch
+      ? await this.productModel.count({ shop: regexShop, title: regexSearch })
+      : await this.productModel.count({ shop: regexShop });
 
     return { goods, totalCount };
   }

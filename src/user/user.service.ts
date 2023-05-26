@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.model';
 import { Model } from 'mongoose';
@@ -12,21 +12,56 @@ export class UserService {
   ) {}
 
   async getOrders(phone: string, email: string) {
-    return await this.userModel
-      .findOne({ $or: [{ phone }, { email }] })
-      .populate('orders')
-      .orFail(new Error(USER_NOT_FOUND_ERROR));
+    try {
+      const { orders } = await this.userModel
+        .findOne({ $or: [{ phone }, { email }] })
+        .select('orders');
+
+      if (!orders) {
+        return new NotFoundException(USER_NOT_FOUND_ERROR);
+      }
+
+      return orders;
+    } catch (error) {
+      console.log('error:', error);
+    }
   }
 
   async createOrUpdateUser(
+    name: string,
     phone: string,
     email: string,
-    order: CreateOrderDto,
+    address: string,
+    order: CreateOrderDto[],
   ): Promise<User> {
-    return await this.userModel.findOneAndUpdate(
-      { $or: [{ phone }, { email }] },
-      { phone, email, order },
-      { upsert: true, new: true },
-    );
+    try {
+      const user = await this.userModel.findOne({
+        $or: [{ phone }, { email }],
+      });
+
+      if (!user) {
+        const date = Date.now();
+        return await this.userModel.create({
+          name,
+          phone,
+          email,
+          address,
+          orders: [{ date, order }],
+          firstOrder: date,
+          lastOrder: date,
+        });
+      } else {
+        {
+          const date = Date.now();
+          return await this.userModel.findOneAndUpdate(
+            { $or: [{ phone }, { email }] },
+            { $push: { orders: { date, order } }, lastOrder: date },
+            { new: true },
+          );
+        }
+      }
+    } catch (error) {
+      console.log('error:', error);
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { OrdersDto } from './dto/orders.dto';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -15,6 +15,9 @@ export class User {
   @Prop({ required: [true, 'Email is required'], unique: true })
   email: string;
 
+  @Prop({ required: [true, 'Address is required'] })
+  address: string;
+
   @Prop()
   firstOrder: Date;
 
@@ -22,7 +25,7 @@ export class User {
   lastOrder: Date;
 
   @Prop()
-  orders: CreateOrderDto[];
+  orders: OrdersDto[];
 }
 
 const UserSchema = SchemaFactory.createForClass(User);

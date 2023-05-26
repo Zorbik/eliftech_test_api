@@ -27,8 +27,8 @@ export class ProductController {
   @Get('goods/:shop')
   async get(
     @Param('shop') shop: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
     @Query('search') search: string,
   ) {
     return await this.productService.getGoods(page, limit, shop, search);
